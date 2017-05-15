@@ -1,7 +1,8 @@
-from flask import Flask
+from flask import Flask, render_template
 from config import DevConfig
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy  import Column,Integer,String,Text,ForeignKey,DateTime,Table
+from sqlalchemy import func
 from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
@@ -75,9 +76,33 @@ class Tag(Base):
     def __repr__(self):
         return "<Tag '{}>".format(self.title)
 
+def sidebar_data():
+    recent = Post.query.order_by(
+        Post.publish_date.desc()
+    ).limit(5).all
+
+    top_tags = session.query(
+        Tag, func.count(tags.c.post_id).label('total').join(
+            tags
+        ).group_by(Tag).order_by('total DESC').limit(5).all
+    )
+
+    return recent, top_tags
+
 @app.route('/')
-def home():
-    return 'finish'
+@app.route('/<int:page>')
+def home(page=1):
+    posts = Post.query.order_by(
+        Post.publish_date.desc()
+    ).paginate(page, 10)
+    recent, top_tags = sidebar_data()
+
+    return render_template(
+        'home.html',
+        posts=posts,
+        recent=recent,
+        top_tags=top_tags
+    )
 
 if __name__ == '__main__':
     app.run()
