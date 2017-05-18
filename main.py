@@ -107,8 +107,7 @@ def post(post_id):
 @app.route('/tag/<string:tag_name>')
 def tag(tag_name):
     tag = session.query(Tag).filter_by(title=tag_name).first()
-    posts = session.query(Post).join(post_tag).filter_by(
-        tag_id=tag.id).order_by(Post.publish_date.desc())
+    posts = session.query(Post).join(Post.tag).filter_by(title=tag.title).order_by(Post.publish_date.desc()).all()
     return render_template(
         'tag.html',
         tag = tag,
