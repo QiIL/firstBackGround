@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title%} {{ post.title }} {% endblock %}
+
+{% block body %}
+<div class="col-lg-9">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1>{{ post.title }}</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            Author: <a href="{{url_for('user', username=post.user.username)}}">{{ post.user.username }}</a> 
+            Date: {{ post.publish_date }} 
+        </div>
+    </div>
+    <div class="row">
+       <div class="col-lg-12">
+            {% for tag in post.tag %}
+            <a href="{{url_for('tag', tag_name=tag.title)}}">{{ tag }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        {{ post.text }}
+    </div>
+    <hr>
+    {% for com in comments %}
+    <div class="row">
+        <div class="col-lg-12">
+            {{ com.name }}
+        </div>
+        <div class="col-lg-12">
+            {{ com.date }}
+        </div>
+    </div>
+    <div class="row">
+        {{ com.text }}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

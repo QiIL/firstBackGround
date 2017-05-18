@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title%} Home {% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-lg-9">
+        {% for post in posts %}
+        <div class="row">
+            <div class="col-lg-12">
+                <h1>{{ post.title }}</h1>
+            </div>
+        </div>
+        <div class="row">
+            &nbsp;&nbsp;&nbsp;&nbsp;Author: <a href="{{url_for('user', username=post.user.username)}}">{{ post.user.username }}</a> , 
+            &nbsp;&nbsp;&nbsp;&nbsp;{{ post.publish_date }}
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                {{ post.text | truncate(255) | safe}}
+                <a href="{{url_for('post', post_id=post.id)}}">Read More</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!--recent post and top tag-->
+    <div class="col-lg-3">
+        <div class="row">
+            <h5>Recent Post</h5>
+            <ul>
+                {% for post in recent %}
+                <li><a href="{{url_for('post',post_id=post.id)}}">
+                    {{ post.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="row">
+            <h5>Recent Tag</h5>
+            <ul>
+                {% for tag in top_tags %}
+                <li><a href="{{url_for('tag', tag_name=tag[0].title)}}">
+                    {{ tag[0].title }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

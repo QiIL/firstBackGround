@@ -76,33 +76,54 @@ class Tag(Base):
     def __repr__(self):
         return "<Tag '{}>".format(self.title)
 
-def sidebar_data():
-    recent = Post.query.order_by(
-        Post.publish_date.desc()
-    ).limit(5).all
-
-    top_tags = session.query(
-        Tag, func.count(tags.c.post_id).label('total').join(
-            tags
-        ).group_by(Tag).order_by('total DESC').limit(5).all
-    )
-
-    return recent, top_tags
+def sider_render():
+    recent = session.query(Post)
 
 @app.route('/')
 @app.route('/<int:page>')
 def home(page=1):
-    posts = Post.query.order_by(
+    posts = session.query(Post).order_by(
         Post.publish_date.desc()
-    ).paginate(page, 10)
-    recent, top_tags = sidebar_data()
+    )
 
     return render_template(
         'home.html',
-        posts=posts,
-        recent=recent,
-        top_tags=top_tags
+        posts = posts
     )
 
+@app.route('/post/<int:post_id>')
+def post(post_id):
+    post = session.query(Post).get(post_id)
+    tags = post.tag
+    comments = session.query(Comment).filter_by(post_id=post.id).order_by(Comment.date.desc()).all()
+    
+    return render_template(
+        'post.html',
+        post = post,
+        tags = tags,
+        comments = comments
+    )
+
+@app.route('/tag/<string:tag_name>')
+def tag(tag_name):
+    tag = session.query(Tag).filter_by(title=tag_name).first()
+    posts = session.query(Post).join(post_tag).filter_by(
+        tag_id=tag.id).order_by(Post.publish_date.desc())
+    return render_template(
+        'tag.html',
+        tag = tag,
+        posts = posts
+    )
+
+@app.route('/user/<string:username>')
+def user(username):
+    user = session.query(User).filter_by(username=username).first()
+    posts = session.query(Post).filter_by(user_id=user.id).order_by(Post.publish_date.desc()).all()
+
+    return render_template(
+        'user.html',
+        user = user,
+        posts = posts
+    )
 if __name__ == '__main__':
     app.run()
