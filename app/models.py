@@ -1,20 +1,15 @@
-from flask import Flask, render_template
-from config import DevConfig
-from sqlalchemy.ext.declarative import declarative_base
+from app import Base
 from sqlalchemy  import Column,Integer,String,Text,ForeignKey,DateTime,Table
 from sqlalchemy import func
 from sqlalchemy.orm import relationship
 
-app = Flask(__name__)
-app.config.from_object(DevConfig)
-Base = declarative_base()
-session = DevConfig.Session()
 
 post_tag = Table('post_tag', Base.metadata,
     Column('post_id', Integer, ForeignKey('posts.id')),
     Column('tag_id', Integer, ForeignKey('tags.id'))
 )
-
+ 
+#models.py
 class User(Base): #parent
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
@@ -58,9 +53,6 @@ class Comment(Base):
     post_id = Column(Integer, ForeignKey('posts.id'))
     post = relationship("Post", back_populates='comment')
     
-    def __init__(self, name):
-        self.name = name
-    
     def __repr__(self):
         return "<Comment '{}'".format(self.text[:15])
 
@@ -75,54 +67,3 @@ class Tag(Base):
 
     def __repr__(self):
         return "<Tag '{}>".format(self.title)
-
-def sider_render():
-    recent = session.query(Post)
-
-@app.route('/')
-@app.route('/<int:page>')
-def home(page=1):
-    posts = session.query(Post).order_by(
-        Post.publish_date.desc()
-    )
-
-    return render_template(
-        'home.html',
-        posts = posts
-    )
-
-@app.route('/post/<int:post_id>')
-def post(post_id):
-    post = session.query(Post).get(post_id)
-    tags = post.tag
-    comments = session.query(Comment).filter_by(post_id=post.id).order_by(Comment.date.desc()).all()
-    
-    return render_template(
-        'post.html',
-        post = post,
-        tags = tags,
-        comments = comments
-    )
-
-@app.route('/tag/<string:tag_name>')
-def tag(tag_name):
-    tag = session.query(Tag).filter_by(title=tag_name).first()
-    posts = session.query(Post).join(Post.tag).filter_by(title=tag.title).order_by(Post.publish_date.desc()).all()
-    return render_template(
-        'tag.html',
-        tag = tag,
-        posts = posts
-    )
-
-@app.route('/user/<string:username>')
-def user(username):
-    user = session.query(User).filter_by(username=username).first()
-    posts = session.query(Post).filter_by(user_id=user.id).order_by(Post.publish_date.desc()).all()
-
-    return render_template(
-        'user.html',
-        user = user,
-        posts = posts
-    )
-if __name__ == '__main__':
-    app.run()
